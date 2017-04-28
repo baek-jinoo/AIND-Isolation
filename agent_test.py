@@ -22,11 +22,11 @@ class IsolationTest(unittest.TestCase):
         self.game = isolation.Board(self.player1, self.player2, 3, 3)
 
     def test_bla(self):
-        print("jin start")
+        print("start")
         #move = (0, 0)
         #self.game.apply_move(move)
         #print(game_agent.custom_score(self.game, self.player1))
-        self.player1.get_move(self.game, 1)
+        self.player1.get_move(self.game, 3)
         #(winner, history, reason) = self.game.play()
         #self.assertEqual(self.player2, winner)
         #print(winner)

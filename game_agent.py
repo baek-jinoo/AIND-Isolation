@@ -213,12 +213,18 @@ class MinimaxPlayer(IsolationPlayer):
         value = None
         next_move = (-1, -1)
 
+        if depth <= 0:
+            return next_move
+
+        print("starting depth: [{}]".format(depth))
+        depth -= 1
+
         for legal_move in game.get_legal_moves(self):
             forecasted_game = game.forecast_move(legal_move)
-            new_value = self.min_value(forecasted_game)
+            new_value = self.min_value(forecasted_game, depth)
             if value == None or value < new_value:
                 print("new value")
-                print(forecasted_game.to_string)
+                print(forecasted_game.to_string())
                 print("new_value: {}".format(new_value))
                 value = new_value
                 next_move = legal_move
@@ -227,12 +233,13 @@ class MinimaxPlayer(IsolationPlayer):
         #if self.time_left() < self.TIMER_THRESHOLD:
         #    raise SearchTimeout()
 
-        #raise NotImplementedError
-
-    def min_value(self, game):
-        if self.terminal_test(game):
+    def min_value(self, game, depth):
+        print("new depth: [{}]".format(depth))
+        if self.terminal_test(game) or depth == 0:
             return self.utility_function(game)
         v = float("inf")
+
+        depth -= 1
 
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
          game.get_legal_moves(game.active_player)]
@@ -240,14 +247,17 @@ class MinimaxPlayer(IsolationPlayer):
             print("min_value loop")
             print(forecasted_game.to_string())
             before_v = v
-            v = min(v, self.max_value(forecasted_game))
+            v = min(v, self.max_value(forecasted_game, depth))
             print("min_value before [{}] after [{}]".format(before_v, v))
         return v
 
-    def max_value(self, game):
-        if self.terminal_test(game):
+    def max_value(self, game, depth):
+        print("new depth: [{}]".format(depth))
+        if self.terminal_test(game) or depth == 0:
             return self.utility_function(game)
         v = float("-inf")
+
+        depth -= 1
 
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
          game.get_legal_moves(game.active_player)]
@@ -255,7 +265,7 @@ class MinimaxPlayer(IsolationPlayer):
             print("max_value loop")
             print(forecasted_game.to_string())
             before_v = v
-            v = max(v, self.min_value(forecasted_game))
+            v = max(v, self.min_value(forecasted_game, depth))
             print("max_value before [{}] after [{}]".format(before_v, v))
         return v
 
