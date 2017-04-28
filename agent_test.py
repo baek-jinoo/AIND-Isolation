@@ -18,21 +18,22 @@ class IsolationMinimaxTest(unittest.TestCase):
 
     def setUp(self):
         reload(game_agent)
-        self.player1 = game_agent.MinimaxPlayer(3)
-        self.player2 = game_agent.MinimaxPlayer(2)
+        self.player1 = game_agent.MinimaxPlayer(4)
+        self.player2 = game_agent.MinimaxPlayer(3)
         self.game = isolation.Board(self.player1, self.player2, 7, 7)
 
-    @unittest.skip  # no reason needed
+    @unittest.skip
+    def test_minmax_get_move(self):
+        time_millis = lambda: 1000 * timeit.default_timer()
+        move_start = time_millis()
+        time_left = lambda : 30000 - (time_millis() - move_start)
+        self.player1.get_move(self.game, time_left)
+
+    @unittest.skip
     def test_minimax(self):
         print("start minimax test")
-
-        #move_start = time_millis()
-        #time_left = lambda : 3 - (time_millis() - move_start)
-        #self.player1.get_move(self.game, 3)
         (winner, history, reason) = self.game.play()
         print(winner.name)
-        print(history)
-        print(reason)
         self.assertEqual(self.player2, winner)
         self.assertEqual(self.player1, winner)
 
@@ -57,12 +58,10 @@ class IsolationAlphaBetaTest(unittest.TestCase):
         time_left = lambda : 30000 - (time_millis() - move_start)
         self.player1.get_move(self.game, time_left)
 
-    @unittest.skip
+    #@unittest.skip
     def test_alpha_beta_pruning(self):
         (winner, history, reason) = self.game.play()
         print(winner.name)
-        print(history)
-        print(reason)
         self.assertEqual(self.player2, winner)
         self.assertEqual(self.player1, winner)
 
