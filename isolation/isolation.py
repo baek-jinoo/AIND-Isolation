@@ -326,6 +326,7 @@ class Board(object):
             curr_move = self._active_player.get_move(game_copy, time_left)
             move_end = time_left()
 
+            print("current move: {}".format(curr_move))
             if curr_move is None:
                 curr_move = Board.NOT_MOVED
 
@@ -340,3 +341,6 @@ class Board(object):
             move_history.append(list(curr_move))
 
             self.apply_move(curr_move)
+            print("move applied for player {}".format(self.active_player.name))
+            print("current active player: {}".format(self.active_player))
+            print(self.to_string())
