@@ -398,7 +398,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            for depth in range(1, self.search_depth):
+            for depth in range(1, self.search_depth + 1):
                 print("depth loop: {}".format(depth))
                 print("update best move {}".format(best_move))
                 best_move = self.alphabeta(game, depth)
@@ -462,7 +462,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         if depth <= 0:
             return next_move
 
-        print("starting depth: [{}]".format(depth))
+        #print("starting depth: [{}]".format(depth))
         depth -= 1
 
         for legal_move in game.get_legal_moves(self):
@@ -470,14 +470,14 @@ class AlphaBetaPlayer(IsolationPlayer):
             if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout()
             forecasted_game = game.forecast_move(legal_move)
-            print(forecasted_game.to_string())
-            print("new alpha value: {}".format(alpha))
+            #print(forecasted_game.to_string())
+            #print("new alpha value: {}".format(alpha))
             new_value = self.min_value(forecasted_game, depth, alpha,
                                        beta)
             if value == None or value < new_value:
-                print("new value")
+                #print("new value")
                 #print(forecasted_game.to_string())
-                print("new_value: {}".format(new_value))
+                #print("new_value: {}".format(new_value))
                 value = new_value
                 alpha = new_value
                 next_move = legal_move
@@ -502,8 +502,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             the minimum utility value or evaluation function value of the
             current state
         """
-        print("got called with alpha: {}, and beta: {}".format(alpha, beta))
-        print("new depth: [{}]".format(depth))
+        #print("new depth: [{}]".format(depth))
         if self.time_left() < self.TIMER_THRESHOLD:
             print("time out")
             raise SearchTimeout()
@@ -515,17 +514,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
          game.get_legal_moves(game.active_player)]
         for forecasted_game in forecasted_games:
-            print("min_value loop")
+            #print("min_value loop")
             #print(forecasted_game.to_string())
             before_v = v
             v = min(v, self.max_value(forecasted_game, depth - 1, alpha, beta))
-            print("min_value before [{}] after [{}]".format(before_v, v))
+            #print("min_value before [{}] after [{}]".format(before_v, v))
             if v <= alpha:
-                print("")
-                print("***********")
-                print("prune happening in max_value")
-                print("***********")
-                print("")
+                #print("prune happening in max_value")
                 return v
             beta = min(beta, v)
         return v
@@ -550,9 +545,8 @@ class AlphaBetaPlayer(IsolationPlayer):
             current state
         """
 
-        print("new depth: [{}]".format(depth))
+        #print("new depth: [{}]".format(depth))
         if self.time_left() < self.TIMER_THRESHOLD:
-            print("time out")
             raise SearchTimeout()
 
         if self.terminal_test(game) or depth == 0:
@@ -562,17 +556,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
          game.get_legal_moves(game.active_player)]
         for forecasted_game in forecasted_games:
-            print("max_value loop")
+            #print("max_value loop")
             #print(forecasted_game.to_string())
             before_v = v
             v = max(v, self.min_value(forecasted_game, depth - 1, alpha, beta))
-            print("max_value before [{}] after [{}]".format(before_v, v))
+            #print("max_value before [{}] after [{}]".format(before_v, v))
             if v >= beta:
-                print("")
-                print("***********")
-                print("prune happening in  min_value")
-                print("***********")
-                print("")
+                #print("prune happening in  min_value")
                 return v
             alpha = max(alpha, v)
         return v

@@ -37,6 +37,7 @@ class IsolationMinimaxTest(unittest.TestCase):
         self.assertEqual(self.player2, winner)
         self.assertEqual(self.player1, winner)
 
+    @unittest.skip
     def test_custom_score(self):
         #print(game_agent.custom_score(self.game, self.player1))
         pass
@@ -46,8 +47,8 @@ class IsolationAlphaBetaTest(unittest.TestCase):
     
     def setUp(self):
         reload(game_agent)
-        self.player1 = game_agent.AlphaBetaPlayer(4)
-        self.player2 = game_agent.AlphaBetaPlayer(3)
+        self.player1 = game_agent.AlphaBetaPlayer(10)
+        self.player2 = game_agent.AlphaBetaPlayer(10)
         self.game = isolation.Board(self.player1, self.player2, 7, 7)
 
     @unittest.skip
