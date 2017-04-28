@@ -3,6 +3,7 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
+import sys
 
 
 class SearchTimeout(Exception):
@@ -34,9 +35,8 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
-
+    legal_moves = game.get_legal_moves(player)
+    return float(len(legal_moves))
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -209,12 +209,83 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        value = None
+        next_move = (-1, -1)
 
+        for legal_move in game.get_legal_moves(self):
+            forecasted_game = game.forecast_move(legal_move)
+            new_value = self.min_value(forecasted_game)
+            if value == None or value < new_value:
+                print("new value")
+                print(forecasted_game.to_string)
+                print("new_value: {}".format(new_value))
+                value = new_value
+                next_move = legal_move
+        return next_move
+
+        #if self.time_left() < self.TIMER_THRESHOLD:
+        #    raise SearchTimeout()
+
+        #raise NotImplementedError
+
+    def min_value(self, game):
+        if self.terminal_test(game):
+            return self.utility_function(game)
+        v = float("inf")
+
+        forecasted_games = [game.forecast_move(legal_move) for legal_move in
+         game.get_legal_moves(game.active_player)]
+        for forecasted_game in forecasted_games:
+            print("min_value loop")
+            print(forecasted_game.to_string())
+            before_v = v
+            v = min(v, self.max_value(forecasted_game))
+            print("min_value before [{}] after [{}]".format(before_v, v))
+        return v
+
+    def max_value(self, game):
+        if self.terminal_test(game):
+            return self.utility_function(game)
+        v = float("-inf")
+
+        forecasted_games = [game.forecast_move(legal_move) for legal_move in
+         game.get_legal_moves(game.active_player)]
+        for forecasted_game in forecasted_games:
+            print("max_value loop")
+            print(forecasted_game.to_string())
+            before_v = v
+            v = max(v, self.min_value(forecasted_game))
+            print("max_value before [{}] after [{}]".format(before_v, v))
+        return v
+
+    def terminal_test(self, game):
+        if not game.get_legal_moves(game.active_player):
+            return True
+        return False
+
+    def utility_function(self, game):
+        """Calculate the utility of the game status from the current player's
+        perspective
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        Returns
+        -------
+        float
+            float("inf") if the player won
+            float("-inf") if the player lost
+            the evaluation function if the user did not lose or win
+        """
+
+        game_utility_value = game.utility(self)
+        if game_utility_value == 0:
+            return self.score(game, self)
+        return game_utility_value
 
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
