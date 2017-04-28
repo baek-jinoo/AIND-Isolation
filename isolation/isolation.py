@@ -11,7 +11,7 @@ import random
 import timeit
 from copy import copy
 
-TIME_LIMIT_MILLIS = 150
+TIME_LIMIT_MILLIS = 2500
 
 
 class Board(object):

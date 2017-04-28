@@ -392,8 +392,19 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # TODO implement this properly
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            return self.alphabeta(game, self.search_depth)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -440,8 +451,141 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        value = None
+        next_move = (-1, -1)
+
+        if depth <= 0:
+            return next_move
+
+        print("starting depth: [{}]".format(depth))
+        depth -= 1
+
+        for legal_move in game.get_legal_moves(self):
+            if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
+            forecasted_game = game.forecast_move(legal_move)
+            new_value = self.min_value(forecasted_game, depth)
+            if value == None or value < new_value:
+                print("new value")
+                #print(forecasted_game.to_string())
+                print("new_value: {}".format(new_value))
+                value = new_value
+                next_move = legal_move
+        return next_move
+
+    def min_value(self, game, depth, alpha, beta):
+        """Get the min value for next move
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+        depth : float
+            The maximum depth of plies in the gameplay to iterate through the
+            depth first search
+
+        Returns
+        -------
+        float
+            the minimum utility value or evaluation function value of the
+            current state
+        """
+        #print("new depth: [{}]".format(depth))
         if self.time_left() < self.TIMER_THRESHOLD:
+            print("time out")
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        if self.terminal_test(game) or depth == 0:
+            return self.utility_function(game)
+        v = float("inf")
+
+        forecasted_games = [game.forecast_move(legal_move) for legal_move in
+         game.get_legal_moves(game.active_player)]
+        for forecasted_game in forecasted_games:
+            #print("min_value loop")
+            #print(forecasted_game.to_string())
+            before_v = v
+            v = min(v, self.max_value(forecasted_game, depth - 1, alpha, beta))
+            #print("min_value before [{}] after [{}]".format(before_v, v))
+        return v
+
+    def max_value(self, game, depth, alpha, beta):
+        """Get the max value for next move
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+        depth : float
+            The maximum depth of plies in the gameplay to iterate through the
+            depth first search
+
+        Returns
+        -------
+        float
+            the maximum utility value or evaluation function value of the 
+            current state
+        """
+
+        #print("new depth: [{}]".format(depth))
+        if self.time_left() < self.TIMER_THRESHOLD:
+            print("time out")
+            raise SearchTimeout()
+
+        if self.terminal_test(game) or depth == 0:
+            return self.utility_function(game)
+        v = float("-inf")
+
+        forecasted_games = [game.forecast_move(legal_move) for legal_move in
+         game.get_legal_moves(game.active_player)]
+        for forecasted_game in forecasted_games:
+            #print("max_value loop")
+            #print(forecasted_game.to_string())
+            before_v = v
+            v = max(v, self.min_value(forecasted_game, depth - 1))
+            #print("max_value before [{}] after [{}]".format(before_v, v))
+        return v
+
+    def terminal_test(self, game):
+        """Check if the game has ended
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        Returns
+        -------
+        bool
+            return whether there are legal move left for the current active
+        player
+        """
+        if not game.get_legal_moves(game.active_player):
+            return True
+        return False
+
+    def utility_function(self, game):
+        """Calculate the utility of the game status from the current player's
+        perspective
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        Returns
+        -------
+        float
+            float("inf") if the player won
+            float("-inf") if the player lost
+            the evaluation function if the user did not lose or win
+        """
+
+        game_utility_value = game.utility(self)
+        if game_utility_value == 0:
+            return self.score(game, self)
+        return game_utility_value
