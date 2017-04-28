@@ -398,10 +398,15 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            return self.alphabeta(game, self.search_depth)
+            for depth in range(1, self.search_depth):
+                print("depth loop: {}".format(depth))
+                print("update best move {}".format(best_move))
+                best_move = self.alphabeta(game, depth)
 
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            print("caught in exception")
+            print("best move when caught in exception: {}".format(best_move))
+            pass
 
         # Return the best move from the last completed search iteration
         return best_move
@@ -471,7 +476,7 @@ class AlphaBetaPlayer(IsolationPlayer):
                                        beta)
             if value == None or value < new_value:
                 print("new value")
-                print(forecasted_game.to_string())
+                #print(forecasted_game.to_string())
                 print("new_value: {}".format(new_value))
                 value = new_value
                 alpha = new_value
@@ -479,6 +484,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         return next_move
 
     def min_value(self, game, depth, alpha, beta):
+        #TODO update the doc
         """Get the min value for next move
 
         Parameters
@@ -510,7 +516,7 @@ class AlphaBetaPlayer(IsolationPlayer):
          game.get_legal_moves(game.active_player)]
         for forecasted_game in forecasted_games:
             print("min_value loop")
-            print(forecasted_game.to_string())
+            #print(forecasted_game.to_string())
             before_v = v
             v = min(v, self.max_value(forecasted_game, depth - 1, alpha, beta))
             print("min_value before [{}] after [{}]".format(before_v, v))
@@ -525,6 +531,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         return v
 
     def max_value(self, game, depth, alpha, beta):
+        #TODO update the doc
         """Get the max value for next move
 
         Parameters
@@ -556,7 +563,7 @@ class AlphaBetaPlayer(IsolationPlayer):
          game.get_legal_moves(game.active_player)]
         for forecasted_game in forecasted_games:
             print("max_value loop")
-            print(forecasted_game.to_string())
+            #print(forecasted_game.to_string())
             before_v = v
             v = max(v, self.min_value(forecasted_game, depth - 1, alpha, beta))
             print("max_value before [{}] after [{}]".format(before_v, v))
@@ -570,6 +577,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             alpha = max(alpha, v)
         return v
 
+    #TODO DRY this
     def terminal_test(self, game):
         """Check if the game has ended
 
@@ -589,6 +597,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             return True
         return False
 
+    #TODO DRY this
     def utility_function(self, game):
         """Calculate the utility of the game status from the current player's
         perspective
