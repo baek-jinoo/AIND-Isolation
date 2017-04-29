@@ -392,15 +392,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO implement this properly
         best_move = (-1, -1)
 
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
             for depth in range(1, self.search_depth + 1):
-                print("depth loop: {}".format(depth))
-                print("update best move {}".format(best_move))
                 best_move = self.alphabeta(game, depth)
 
         except SearchTimeout:
@@ -466,7 +463,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         depth -= 1
 
         for legal_move in game.get_legal_moves(self):
-            print("legal move: {}".format(legal_move))
+            #print("legal move: {}".format(legal_move))
             if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout()
             forecasted_game = game.forecast_move(legal_move)
@@ -504,7 +501,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         #print("new depth: [{}]".format(depth))
         if self.time_left() < self.TIMER_THRESHOLD:
-            print("time out")
             raise SearchTimeout()
 
         if self.terminal_test(game) or depth == 0:
