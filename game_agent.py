@@ -34,7 +34,7 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    game_utility_value = game.utility(self)
+    game_utility_value = game.utility(player)
     if game_utility_value == 0.:
         legal_moves = game.get_legal_moves(player)
         return float(len(legal_moves))
@@ -577,7 +577,4 @@ class AlphaBetaPlayer(IsolationPlayer):
             the evaluation function if the user did not lose or win
         """
 
-        game_utility_value = game.utility(self)
-        if game_utility_value == 0:
-            return self.score(game, self)
-        return game_utility_value
+        return self.score(game, self)
