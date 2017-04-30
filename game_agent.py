@@ -112,12 +112,17 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, test_run=False, search_depth=3, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
-
+        self.test_run = test_run
+        self._checked_nodes = []
+    
+    @property
+    def checked_nodes(self):
+        return self._checked_nodes
 
 class MinimaxPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using depth-limited minimax
@@ -302,8 +307,36 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+
+        if depth == 0:
+            return (-1, -1)
+        
+        (move, value) = self.max_value(game, depth, alpha, beta)
+        return move
+
+    def min_value(self, game, depth, alpha, beta):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        if depth == 0:
+            return self.utility(game)
+
+    def max_value(self, game, depth, alpha, beta):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        v = float("-inf")
+        next_move = (-1, -1)
+
+        for legal_move in game.get_legal_moves(self):
+            forecasted_game = game.forecast_move(legal_move)
+            new_value = self.min_value(game, depth - 1, alpha, beta)
+            if self.test_run:
+                self.checked_nodes.append(forecasted_game)
+            if v < new_value:
+                v = new_value
+                next_move = legal_move
+        return (legal_move, v)
+
+    def utility(self, game):
+        return 0.0
