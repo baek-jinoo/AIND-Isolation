@@ -9,6 +9,33 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
+def custom_score4(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    This should be the best heuristic function for your project submission.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+    b = float(len(game.get_legal_moves(player)))
+    return b
+
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -35,7 +62,12 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    return float(len(game.get_legal_moves(player)))
+
+    #game_utility_value = game.utility(player)
+    #if game_utility_value == 0.0:
+    #    game_utility_value = float(len(game.get_legal_moves(player)))
+    #return game_utility_value
 
 
 def custom_score_2(game, player):
@@ -112,12 +144,12 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, test_run=False, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
-        self.test_run = test_run
+        self.test_run = False
         self._checked_nodes = []
     
     @property
@@ -308,35 +340,70 @@ class AlphaBetaPlayer(IsolationPlayer):
                 testing.
         """
 
+        best_move = (-1, -1)
+
         if depth == 0:
             return (-1, -1)
-        
-        (move, value) = self.max_value(game, depth, alpha, beta)
+
+        (move, new_value) = self.max_value(game, depth, alpha, beta)
         return move
 
     def min_value(self, game, depth, alpha, beta):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth == 0:
-            return self.utility(game)
+        best_move = (-1, -1)
+
+        if depth <= 0 or len(game.get_legal_moves(game.active_player)) == 0:
+            return (best_move, self.utility(game))
+
+        v = float("inf")
+
+        for legal_move in game.get_legal_moves(game.active_player):
+            forecasted_game = game.forecast_move(legal_move)
+            (returned_move, new_value) = self.max_value(forecasted_game, depth - 1, alpha, beta)
+            if v > new_value:
+                v = new_value
+                best_move = legal_move
+            if v <= alpha:
+                return (best_move, v)
+            beta = min(beta, v)
+        return (best_move, v)
 
     def max_value(self, game, depth, alpha, beta):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        v = float("-inf")
-        next_move = (-1, -1)
+        best_move = (-1, -1)
 
-        for legal_move in game.get_legal_moves(self):
+        if depth <= 0  or len(game.get_legal_moves(game.active_player)) == 0:
+            return (best_move, self.utility(game))
+
+        v = float("-inf")
+
+        for legal_move in game.get_legal_moves(game.active_player):
             forecasted_game = game.forecast_move(legal_move)
-            new_value = self.min_value(game, depth - 1, alpha, beta)
-            if self.test_run:
-                self.checked_nodes.append(forecasted_game)
+            (returned_move, new_value) = self.min_value(forecasted_game, depth - 1, alpha, beta)
             if v < new_value:
                 v = new_value
-                next_move = legal_move
-        return (legal_move, v)
+                best_move = legal_move
+            if v >= beta:
+                return (best_move, v)
+            alpha = max(alpha, v)
+        return (best_move, v)
 
     def utility(self, game):
-        return 0.0
+        return self.score(game, self)
+
+
+
+
+
+
+
+        #game_utility_value = game.utility(self)
+        #call = self.score(game, self)
+        #if game_utility_value == 0.0:
+        #    game_utility_value = self.score(game, self)
+        #print(game_utility_value)
+        #return game_utility_value
