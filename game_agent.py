@@ -428,115 +428,58 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        value = None
-        next_move = (-1, -1)
+        if depth == 0:
+            return (-1, -1)
 
-        if depth <= 0:
-            return next_move
-
-        #print("starting depth: [{}]".format(depth))
-        depth -= 1
-
-        for legal_move in game.get_legal_moves(self):
-            #print("legal move: {}".format(legal_move))
-            if self.time_left() < self.TIMER_THRESHOLD:
-                raise SearchTimeout()
-            forecasted_game = game.forecast_move(legal_move)
-            #print(forecasted_game.to_string())
-            #print("new alpha value: {}".format(alpha))
-            new_value = self.min_value(forecasted_game, depth, alpha,
-                                       beta)
-            if value == None or value < new_value:
-                #print("new value")
-                #print(forecasted_game.to_string())
-                #print("new_value: {}".format(new_value))
-                value = new_value
-                alpha = new_value
-                next_move = legal_move
-        return next_move
+        (move, new_value) = self.max_value(game, depth, alpha, beta)
+        return move
 
     def min_value(self, game, depth, alpha, beta):
-        #TODO update the doc
-        """Get the min value for next move
-
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
-        depth : float
-            The maximum depth of plies in the gameplay to iterate through the
-            depth first search
-
-        Returns
-        -------
-        float
-            the minimum utility value or evaluation function value of the
-            current state
-        """
-        #print("new depth: [{}]".format(depth))
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if self.terminal_test(game) or depth == 0:
-            return self.utility_function(game)
+        best_move = (-1, -1)
+
+        if depth <= 0 or len(game.get_legal_moves(game.active_player)) == 0:
+            return (best_move, self.utility(game))
+
         v = float("inf")
 
-        forecasted_games = [game.forecast_move(legal_move) for legal_move in
-         game.get_legal_moves(game.active_player)]
-        for forecasted_game in forecasted_games:
-            #print("min_value loop")
-            #print(forecasted_game.to_string())
-            before_v = v
-            v = min(v, self.max_value(forecasted_game, depth - 1, alpha, beta))
-            #print("min_value before [{}] after [{}]".format(before_v, v))
+        for legal_move in game.get_legal_moves(game.active_player):
+            forecasted_game = game.forecast_move(legal_move)
+            (returned_move, new_value) = self.max_value(forecasted_game, depth - 1, alpha, beta)
+            if v > new_value:
+                v = new_value
+                best_move = legal_move
             if v <= alpha:
-                #print("prune happening in max_value")
-                return v
+                return (best_move, v)
             beta = min(beta, v)
-        return v
+        return (best_move, v)
 
     def max_value(self, game, depth, alpha, beta):
-        #TODO update the doc
-        """Get the max value for next move
-
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
-        depth : float
-            The maximum depth of plies in the gameplay to iterate through the
-            depth first search
-
-        Returns
-        -------
-        float
-            the maximum utility value or evaluation function value of the 
-            current state
-        """
-
-        #print("new depth: [{}]".format(depth))
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if self.terminal_test(game) or depth == 0:
-            return self.utility_function(game)
+        best_move = (-1, -1)
+
+        if depth <= 0  or len(game.get_legal_moves(game.active_player)) == 0:
+            return (best_move, self.utility(game))
+
         v = float("-inf")
 
-        forecasted_games = [game.forecast_move(legal_move) for legal_move in
-         game.get_legal_moves(game.active_player)]
-        for forecasted_game in forecasted_games:
-            #print("max_value loop")
-            #print(forecasted_game.to_string())
-            before_v = v
-            v = max(v, self.min_value(forecasted_game, depth - 1, alpha, beta))
-            #print("max_value before [{}] after [{}]".format(before_v, v))
+        for legal_move in game.get_legal_moves(game.active_player):
+            forecasted_game = game.forecast_move(legal_move)
+            (returned_move, new_value) = self.min_value(forecasted_game, depth - 1, alpha, beta)
+            if v < new_value:
+                v = new_value
+                best_move = legal_move
             if v >= beta:
-                #print("prune happening in  min_value")
-                return v
+                return (best_move, v)
             alpha = max(alpha, v)
-        return v
+        return (best_move, v)
+
+    def utility(self, game):
+        return self.score(game, self)
 
     #TODO DRY this
     def terminal_test(self, game):
