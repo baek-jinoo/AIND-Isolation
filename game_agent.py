@@ -372,13 +372,15 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            for depth in range(1, self.search_depth + 1):
+
+            depth = 1
+
+            while True:
                 best_move = self.alphabeta(game, depth)
+                depth += 1
 
         except SearchTimeout:
-            print("caught in exception")
-            print("best move when caught in exception: {}".format(best_move))
-            pass
+            return best_move
 
         # Return the best move from the last completed search iteration
         return best_move
