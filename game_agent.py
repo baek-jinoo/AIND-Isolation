@@ -207,7 +207,7 @@ class MinimaxPlayer(IsolationPlayer):
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-        best_move = (-1, -1)
+        (legal_moves, best_move) = self.legal_moves_and_random_move(game)
 
         try:
             # The try/except block will automatically catch the exception
@@ -261,7 +261,7 @@ class MinimaxPlayer(IsolationPlayer):
         """
 
         value = None
-        next_move = (-1, -1)
+        (legal_moves, next_move) = self.legal_moves_and_random_move(game)
 
         if depth <= 0:
             return next_move
@@ -377,7 +377,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        (legal_moves, best_move) = self.best_move(game)
+        (legal_moves, best_move) = self.legal_moves_and_random_move(game)
 
         try:
             # The try/except block will automatically catch the exception
@@ -441,9 +441,8 @@ class AlphaBetaPlayer(IsolationPlayer):
                 testing.
         """
         if depth == 0:
-            (legal_moves, best_move) = self.best_move(game)
+            (legal_moves, best_move) = self.legal_moves_and_random_move(game)
             return best_move
-        #pdb.set_trace()
 
         (move, new_value) = self.max_value(game, depth, alpha, beta)
         return move
@@ -478,7 +477,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        (legal_moves, best_move) = self.best_move(game)
+        (legal_moves, best_move) = self.legal_moves_and_random_move(game)
 
         if depth <= 0 or self.terminal_test(game):
             return (best_move, self.score(game, self))
@@ -494,14 +493,6 @@ class AlphaBetaPlayer(IsolationPlayer):
                 return (best_move, v)
             beta = min(beta, v)
         return (best_move, v)
-
-    def best_move(self, game):
-        legal_moves = game.get_legal_moves(game.active_player)
-        best_move = (-1 , -1)
-        if len(legal_moves) > 0:
-            best_move = random.choice(legal_moves)
-        return (legal_moves, best_move)
-
 
     def max_value(self, game, depth, alpha, beta):
         """Get the max value for next move
@@ -533,7 +524,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        (legal_moves, best_move) = self.best_move(game)
+        (legal_moves, best_move) = self.legal_moves_and_random_move(game)
 
         if depth <= 0  or self.terminal_test(game):
             return (best_move, self.score(game, self))
@@ -549,4 +540,12 @@ class AlphaBetaPlayer(IsolationPlayer):
                 return (best_move, v)
             alpha = max(alpha, v)
         return (best_move, v)
+
+    def legal_moves_and_random_move(self, game):
+        #TODO write doc
+        legal_moves = game.get_legal_moves(game.active_player)
+        best_move = (-1 , -1)
+        if len(legal_moves) > 0:
+            best_move = random.choice(legal_moves)
+        return (legal_moves, best_move)
 
