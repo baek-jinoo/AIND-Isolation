@@ -34,11 +34,11 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
+    # TODO: finish this function!
     game_utility_value = game.utility(player)
     if game_utility_value == 0.:
-        legal_moves = game.get_legal_moves(player)
-        return float(len(legal_moves))
-    return float(game_utility_value)
+        return float(len(game.get_legal_moves(player)))
+    return game_utility_value
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -63,7 +63,11 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    game_utility_value = game.utility(player)
+    if game_utility_value == 0.:
+        legal_moves = game.get_legal_moves(player)
+        return float(len(legal_moves))
+    return float(game_utility_value)
 
 
 def custom_score_3(game, player):
@@ -89,7 +93,11 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    game_utility_value = game.utility(player)
+    if game_utility_value == 0.:
+        legal_moves = game.get_legal_moves(player)
+        return float(len(legal_moves))
+    return float(game_utility_value)
 
 
 class IsolationPlayer:
@@ -119,6 +127,25 @@ class IsolationPlayer:
         self.score = score_fn
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
+
+    def terminal_test(self, game):
+        """Check if the game has ended
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        Returns
+        -------
+        bool
+            return whether there are legal move left for the current active
+        player
+        """
+        if not game.get_legal_moves(game.active_player):
+            return True
+        return False
 
 class MinimaxPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using depth-limited minimax
@@ -249,7 +276,7 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         if self.terminal_test(game) or depth == 0:
-            return self.utility_function(game)
+            return self.score(game, self)
         v = float("inf")
 
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
@@ -281,7 +308,7 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         if self.terminal_test(game) or depth == 0:
-            return self.utility_function(game)
+            return self.score(game, self)
         v = float("-inf")
 
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
@@ -289,45 +316,6 @@ class MinimaxPlayer(IsolationPlayer):
         for forecasted_game in forecasted_games:
             v = max(v, self.min_value(forecasted_game, depth - 1))
         return v
-
-    def terminal_test(self, game):
-        """Check if the game has ended
-
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
-
-        Returns
-        -------
-        bool
-            return whether there are legal move left for the current active
-        player
-        """
-        if not game.get_legal_moves(game.active_player):
-            return True
-        return False
-
-    def utility_function(self, game):
-        """Calculate the utility of the game status from the current player's
-        perspective
-
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
-
-        Returns
-        -------
-        float
-            float("inf") if the player won
-            float("-inf") if the player lost
-            the evaluation function if the user did not lose or win
-        """
-
-        return self.score(game, self)
 
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
@@ -443,7 +431,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         best_move = (-1, -1)
 
         if depth <= 0 or len(game.get_legal_moves(game.active_player)) == 0:
-            return (best_move, self.utility(game))
+            return (best_move, self.score(game, self))
 
         v = float("inf")
 
@@ -465,7 +453,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         best_move = (-1, -1)
 
         if depth <= 0  or len(game.get_legal_moves(game.active_player)) == 0:
-            return (best_move, self.utility(game))
+            return (best_move, self.score(game, self))
 
         v = float("-inf")
 
@@ -480,46 +468,3 @@ class AlphaBetaPlayer(IsolationPlayer):
             alpha = max(alpha, v)
         return (best_move, v)
 
-    def utility(self, game):
-        return self.score(game, self)
-
-    #TODO DRY this
-    def terminal_test(self, game):
-        """Check if the game has ended
-
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
-
-        Returns
-        -------
-        bool
-            return whether there are legal move left for the current active
-        player
-        """
-        if not game.get_legal_moves(game.active_player):
-            return True
-        return False
-
-    #TODO DRY this
-    def utility_function(self, game):
-        """Calculate the utility of the game status from the current player's
-        perspective
-
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
-
-        Returns
-        -------
-        float
-            float("inf") if the player won
-            float("-inf") if the player lost
-            the evaluation function if the user did not lose or win
-        """
-
-        return self.score(game, self)
