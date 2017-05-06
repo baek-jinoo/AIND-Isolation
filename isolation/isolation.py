@@ -10,8 +10,9 @@ be available to project reviewers.
 import random
 import timeit
 from copy import copy
+import pdb
 
-TIME_LIMIT_MILLIS = 2500
+TIME_LIMIT_MILLIS = 150
 
 
 class Board(object):
@@ -326,7 +327,7 @@ class Board(object):
             curr_move = self._active_player.get_move(game_copy, time_left)
             move_end = time_left()
 
-            print("current move: {}".format(curr_move))
+            #print("current move: {}".format(curr_move))
             if curr_move is None:
                 curr_move = Board.NOT_MOVED
 
@@ -341,5 +342,5 @@ class Board(object):
             move_history.append(list(curr_move))
 
             self.apply_move(curr_move)
-            print("current active player: {}".format(self.active_player))
-            print(self.to_string())
+            #print("current active player: {}".format(self.active_player))
+            #print(self.to_string())
