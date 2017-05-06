@@ -169,6 +169,15 @@ class IsolationPlayer:
             return True
         return False
 
+    def legal_moves_and_random_move(self, game):
+        #TODO write doc
+        legal_moves = game.get_legal_moves(game.active_player)
+        best_move = (-1 , -1)
+        if len(legal_moves) > 0:
+            best_move = random.choice(legal_moves)
+        return (legal_moves, best_move)
+
+
 class MinimaxPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using depth-limited minimax
     search. You must finish and test this player to make sure it properly uses
@@ -540,12 +549,4 @@ class AlphaBetaPlayer(IsolationPlayer):
                 return (best_move, v)
             alpha = max(alpha, v)
         return (best_move, v)
-
-    def legal_moves_and_random_move(self, game):
-        #TODO write doc
-        legal_moves = game.get_legal_moves(game.active_player)
-        best_move = (-1 , -1)
-        if len(legal_moves) > 0:
-            best_move = random.choice(legal_moves)
-        return (legal_moves, best_move)
 
