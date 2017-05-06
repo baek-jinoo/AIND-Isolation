@@ -275,7 +275,7 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if self.terminal_test(game) or depth == 0:
+        if depth <= 0 or self.terminal_test(game):
             return self.score(game, self)
         v = float("inf")
 
@@ -307,7 +307,7 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if self.terminal_test(game) or depth == 0:
+        if depth <= 0 or self.terminal_test(game):
             return self.score(game, self)
         v = float("-inf")
 
@@ -425,14 +425,39 @@ class AlphaBetaPlayer(IsolationPlayer):
         return move
 
     def min_value(self, game, depth, alpha, beta):
+        """Get the max value for next move
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+        depth : float
+            The maximum depth of plies in the gameplay to iterate through the
+            depth first search
+        alpha: float
+            The value used to cut-off serach on the min node. This value is
+            updated in a max node and used in the subsequent sibling max node
+        beta: float
+            The value used to cut-off search under the max node. This value is
+            updated in a min node and used in the subsequent sibling min node
+
+        Returns
+        -------
+        ((int, int), float)
+            (best_move, utility_value)
+            The best move in the board coordinate
+            and the maximum utility value or evaluation function
+            value of the current state
+        """
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
         best_move = (-1, -1)
 
-        if depth <= 0 or len(game.get_legal_moves(game.active_player)) == 0:
+        if depth <= 0 or self.terminal_test(game):
             return (best_move, self.score(game, self))
-
         v = float("inf")
 
         for legal_move in game.get_legal_moves(game.active_player):
@@ -447,14 +472,39 @@ class AlphaBetaPlayer(IsolationPlayer):
         return (best_move, v)
 
     def max_value(self, game, depth, alpha, beta):
+        """Get the max value for next move
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+        depth : float
+            The maximum depth of plies in the gameplay to iterate through the
+            depth first search
+        alpha: float
+            The value used to cut-off serach on the min node. This value is
+            updated in a max node and used in the subsequent sibling max node
+        beta: float
+            The value used to cut-off search under the max node. This value is
+            updated in a min node and used in the subsequent sibling min node
+
+        Returns
+        -------
+        ((int, int), float)
+            (best_move, utility_value)
+            The best move in the board coordinate
+            and the maximum utility value or evaluation function
+            value of the current state
+        """
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
         best_move = (-1, -1)
 
-        if depth <= 0  or len(game.get_legal_moves(game.active_player)) == 0:
+        if depth <= 0  or self.terminal_test(game):
             return (best_move, self.score(game, self))
-
         v = float("-inf")
 
         for legal_move in game.get_legal_moves(game.active_player):
