@@ -57,6 +57,23 @@ class IsolationAlphaBetaTest(unittest.TestCase):
         self.player1.time_left = time_left
 
     @unittest.skip
+    def test_forefeit(self):
+        moves = [[0, 4], [2, 6], [2, 3], [4, 5], [1, 5], [5, 3], [3, 4], [6, 5],
+                 [5, 5], [4, 4], [4, 3], [2, 5], [6, 4], [3, 3], [5, 6], [5, 2],
+                 [3, 5], [3, 1], [1, 4], [1, 2], [0, 2], [2, 4], [1, 0], [0, 3],
+                 [2, 2]]
+        for move in moves:
+            self.game.apply_move(move)
+
+        print(self.game.to_string())
+        time_millis = lambda: 1000 * timeit.default_timer()
+        move_start = time_millis()
+        time_left = lambda : 150 - (time_millis() - move_start)
+        next_move = self.player2.get_move(self.game, time_left)
+        print(next_move)
+
+
+    @unittest.skip
     def test_alpha_beta_depth_0(self):
         next_move = self.player1.alphabeta(self.game, 0)
 

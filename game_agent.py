@@ -34,25 +34,17 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
     game_utility_value = game.utility(player)
     if game_utility_value == 0.:
-        my_move_states = [game.forecast_move(legal_move) for legal_move in
-                              game.get_legal_moves(player)]
-        their_move_states = [game.forecast_move(legal_move) for legal_move in
-                             game.get_legal_moves(game.get_opponent(player))]
+        my_next_legal_moves = game.get_legal_moves(player)
+        their_next_legal_moves = game.get_legal_moves(game.get_opponent(player))
+        score = float(len(my_next_legal_moves) - len(their_next_legal_moves))
 
-        my_move_states_2 = [[my_move_state.forecast_move(legal_move) for legal_move in
-                             my_move_state.get_legal_moves(player)] for my_move_state in my_move_states]
-        their_move_states_2 = [[their_move_state.forecast_move(legal_move) for legal_move in
-                             their_move_state.get_legal_moves(game.get_opponent(player))]
-                               for their_move_state in their_move_states]
-        score = float(len(my_move_states) - len(their_move_states))
-        my_second_score = float(len(my_move_states_2)) * 0.25
-        their_second_score = float(len(their_move_states_2)) * 0.25
-        score = score + my_second_score - their_second_score
-        #print("current score: {}".format(score))
-        return score
+        w, h = game.width / 2., game.height / 2.
+        y, x = game.get_player_location(player)
+        center_score = float((h - y)**2 + (w - x)**2)
+
+        return score + center_score
     return game_utility_value
 
 def custom_score_2(game, player):
@@ -77,18 +69,12 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
     game_utility_value = game.utility(player)
     if game_utility_value == 0.:
-        my_move_states = [game.forecast_move(legal_move) for legal_move in
-                              game.get_legal_moves(player)]
-        my_move_states_2 = [[my_move_state.forecast_move(legal_move) for legal_move in
-                             my_move_state.get_legal_moves(player)] for my_move_state in my_move_states]
-        score = float(len(my_move_states))
-        my_second_score = float(len(my_move_states_2)) * 0.25
-        score = score + my_second_score
-        #print("current score: {}".format(score))
-        return score
+        player_legal_moves = game.get_legal_moves(player)
+        opponent_legal_moves = game.get_legal_moves(game.get_opponent(player))
+
+        score = float(len(player_legal_moves) - len(opponent_legal_moves))
     return float(game_utility_value)
 
 
@@ -114,11 +100,12 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
     game_utility_value = game.utility(player)
     if game_utility_value == 0.:
-        legal_moves = game.get_legal_moves(player)
-        return float(len(legal_moves))
+        w, h = game.width / 2., game.height / 2.
+        y, x = game.get_player_location(player)
+        return float((h - y)**2 + (w - x)**2)
+
     return float(game_utility_value)
 
 
