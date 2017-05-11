@@ -3,6 +3,7 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
+import numpy
 
 
 class SearchTimeout(Exception):
@@ -73,7 +74,7 @@ def custom_score(game, player):
         center_score = float((h - y)**2 + (w - x)**2)
         opponent_center_score = float((h - opponent_y)**2 + (w - opponent_x)**2)
 
-        return score + center_score - opponent_center_score + intersection_score
+        return score + center_score - opponent_center_score #+ intersection_score
     return game_utility_value
 
 def custom_score_2(game, player):
@@ -166,8 +167,15 @@ class IsolationPlayer:
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
 
-    def reorientate_coordinate(self, coordinate):
-        return (0, 1)
+    def reorientate_coordinate(self, coordinate, game_width, game_height):
+        vector = numpy.transpose(numpy.matrix(coordinate))
+        print(vector)
+        print("b")
+        bla = numpy.matrix([[0., 1.], [-1., 0.]])
+        print(bla)
+        print("c")
+        print(bla * vector)
+        return (0, 0)
 
     def terminal_test(self, game):
         """Check if the game has ended

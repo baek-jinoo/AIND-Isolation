@@ -42,6 +42,82 @@ class IsolationMinimaxTest(unittest.TestCase):
         #print(game_agent.custom_score(self.game, self.player1))
         pass
 
+class IsolationFirstTwoMovesRotationTest(unittest.TestCase):
+    """
+    Unit tests for first two moves rotation to reduce search space
+    """
+
+    def setUp(self):
+        reload(game_agent)
+        self.player1 = game_agent.AlphaBetaPlayer(3)
+        self.player2 = game_agent.AlphaBetaPlayer(3)
+        self.game = isolation.Board(self.player1, self.player2, 7, 7)
+
+    def test_first_two_move_reorientation_in_q1(self):
+        # make one move in Q1
+        game_width = 3
+        game_height = 3
+        self.game = isolation.Board(self.player1, self.player2, game_width,
+                                    game_height)
+        reoriented_coorindate = self.player1.reorientate_coordinate((0, 2),
+                                                                    game_width,
+                                                                    game_height)
+
+        self.assertEqual((0, 0), reoriented_coorindate)
+
+    def test_first_two_move_reorientation_in_q2(self):
+        # make one move in Q2
+        game_width = 7
+        game_height = 7
+        self.game = isolation.Board(self.player1, self.player2, game_width,
+                                    game_height)
+        reoriented_coorindate = self.player1.reorientate_coordinate((6, 1),
+                                                                    game_width,
+                                                                    game_height)
+        #check that method gives back coordinate in Q1
+        #self.assertEqual((0, 1), reoriented_coorindate)
+
+    def test_first_two_move_reorientation_in_q3(self):
+        # make one move in Q3
+        game_width = 7
+        game_height = 7
+        self.game = isolation.Board(self.player1, self.player2, game_width,
+                                    game_height)
+        reoriented_coorindate = self.player1.reorientate_coordinate((6, 1),
+                                                                    game_width,
+                                                                    game_height)
+        #check that method gives back coordinate in Q1
+
+    def test_first_two_move_reorientation_in_q4(self):
+        # make one move in Q4
+        game_width = 7
+        game_height = 7
+        self.game = isolation.Board(self.player1, self.player2, game_width,
+                                    game_height)
+        reoriented_coorindate = self.player1.reorientate_coordinate((6, 1),
+                                                                    game_width,
+                                                                    game_height)
+        #check that method gives back coordinate in Q1
+
+    def test_first_move_reorientation_in_q4_rectangular_flip(self):
+        game_width = 2
+        game_height = 3
+        self.game = isolation.Board(self.player1, self.player2, game_width,
+                                    game_height)
+        reoriented_coorindate = self.player1.reorientate_coordinate((2, 1),
+                                                                    game_width,
+                                                                    game_height)
+
+    def test_first_move_reorientation_in_q4_rectangular_no_flip(self):
+        game_width = 2
+        game_height = 3
+        self.game = isolation.Board(self.player1, self.player2, game_width,
+                                    game_height)
+        reoriented_coorindate = self.player1.reorientate_coordinate((2, 1),
+                                                                    game_width,
+                                                                    game_height)
+
+
 class IsolationAlphaBetaTest(unittest.TestCase):
     """Unit tests for alpha beta isolation agents"""
 
@@ -66,12 +142,11 @@ class IsolationAlphaBetaTest(unittest.TestCase):
             self.game.apply_move(move)
 
         print(self.game.to_string())
-        time_millis = lambda: 1000 * timeit.default_timer()
-        move_start = time_millis()
-        time_left = lambda : 150 - (time_millis() - move_start)
-        next_move = self.player2.get_move(self.game, time_left)
-        print(next_move)
-
+    #    time_millis = lambda: 1000 * timeit.default_timer()
+    #    move_start = time_millis()
+    #    time_left = lambda : 150 - (time_millis() - move_start)
+    #    next_move = self.player2.get_move(self.game, time_left)
+    #    print(next_move)
 
     @unittest.skip
     def test_alpha_beta_depth_0(self):
