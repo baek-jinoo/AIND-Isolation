@@ -34,17 +34,46 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
+
+    #def score_for_next_moves(intersection, my_next_legal_moves,
+    #                         their_next_legal_moves):
+    #    if game.active_player == player and len(my_next_legal_moves) > 0:
+    #        found = False
+    #        while !found:
+    #            random_next_move = random.choice(my_next_legal_moves)
+    #            if random_next_move not in intersection:
+    #                found = True
+    #        forecast_game = game.forecast_move(random_next_move)
+    #        their_next_legal_moves_2 =
+    #        game.get_legal_moves(game.get_opponent(player))
+    #    else:
+    #        random_next_move = random.choice(their_next_legal_moves)
+    #        forecast_game = game.forecast_move(random_next_move)
+
+
     game_utility_value = game.utility(player)
     if game_utility_value == 0.:
         my_next_legal_moves = game.get_legal_moves(player)
         their_next_legal_moves = game.get_legal_moves(game.get_opponent(player))
+
+        intersection = set(my_next_legal_moves).intersection(set(their_next_legal_moves))
+
+        intersection_score = 0.
+        intersection_score_multiplier = 0.8
+        if game.active_player == player:
+            intersection_score = float(len(intersection)) * intersection_score_multiplier
+        else:
+            intersection_score = -1. * float((len(intersection))) * intersection_score_multiplier
+
         score = float(len(my_next_legal_moves) - len(their_next_legal_moves))
 
         w, h = game.width / 2., game.height / 2.
         y, x = game.get_player_location(player)
+        opponent_y, opponent_x = game.get_player_location(game.get_opponent(player))
         center_score = float((h - y)**2 + (w - x)**2)
+        opponent_center_score = float((h - opponent_y)**2 + (w - opponent_x)**2)
 
-        return score + center_score
+        return score + center_score - opponent_center_score + intersection_score
     return game_utility_value
 
 def custom_score_2(game, player):
@@ -136,6 +165,9 @@ class IsolationPlayer:
         self.score = score_fn
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
+
+    def reorientate_coordinate(self, coordinate):
+        return (0, 1)
 
     def terminal_test(self, game):
         """Check if the game has ended
