@@ -36,46 +36,34 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    #def score_for_next_moves(intersection, my_next_legal_moves,
-    #                         their_next_legal_moves):
-    #    if game.active_player == player and len(my_next_legal_moves) > 0:
-    #        found = False
-    #        while !found:
-    #            random_next_move = random.choice(my_next_legal_moves)
-    #            if random_next_move not in intersection:
-    #                found = True
-    #        forecast_game = game.forecast_move(random_next_move)
-    #        their_next_legal_moves_2 =
-    #        game.get_legal_moves(game.get_opponent(player))
-    #    else:
-    #        random_next_move = random.choice(their_next_legal_moves)
-    #        forecast_game = game.forecast_move(random_next_move)
-
-
     game_utility_value = game.utility(player)
-    if game_utility_value == 0.:
-        my_next_legal_moves = game.get_legal_moves(player)
-        their_next_legal_moves = game.get_legal_moves(game.get_opponent(player))
+    if game_utility_value != 0.:
+        return game_utility_value
 
-        intersection = set(my_next_legal_moves).intersection(set(their_next_legal_moves))
+    my_next_legal_moves = game.get_legal_moves(player)
+    their_next_legal_moves = game.get_legal_moves(game.get_opponent(player))
 
-        intersection_score = 0.
-        intersection_score_multiplier = 0.8
-        if game.active_player == player:
-            intersection_score = float(len(intersection)) * intersection_score_multiplier
-        else:
-            intersection_score = -1. * float((len(intersection))) * intersection_score_multiplier
+    score = float(len(my_next_legal_moves) - len(their_next_legal_moves))
 
-        score = float(len(my_next_legal_moves) - len(their_next_legal_moves))
+    intersection = set(my_next_legal_moves).intersection(set(their_next_legal_moves))
 
-        w, h = game.width / 2., game.height / 2.
-        y, x = game.get_player_location(player)
-        opponent_y, opponent_x = game.get_player_location(game.get_opponent(player))
-        center_score = float((h - y)**2 + (w - x)**2)
-        opponent_center_score = float((h - opponent_y)**2 + (w - opponent_x)**2)
+    intersection_score = 0.
+    intersection_score_multiplier = 0.8
+    if game.active_player == player:
+        intersection_score = float(len(intersection)) * intersection_score_multiplier
+    else:
+        intersection_score = -1. * float((len(intersection))) * intersection_score_multiplier
 
-        return score + center_score - opponent_center_score #+ intersection_score
-    return game_utility_value
+    w, h = game.width / 2., game.height / 2.
+    y, x = game.get_player_location(player)
+    center_score = float((h - y)**2 + (w - x)**2)
+
+    opponent_player = game.get_opponent(player)
+    opponent_location = game.get_player_location(opponent_player)
+    opponent_center_score = 0.
+    if opponent_location != None:
+        opponent_center_score = float((h - opponent_location[0])**2 + (w - opponent_location[1])**2)
+    return score + center_score - opponent_center_score #+ intersection_score
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -166,8 +154,12 @@ class IsolationPlayer:
         self.score = score_fn
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
+        self.debug = False
+        self.checked_nodes = []
 
     def reorientate_coordinate(self, coordinate, game_width, game_height):
+        #TODO add doc
+
         # only do this for symmetric board
         if game_height != game_width:
             return coordinate
@@ -217,6 +209,7 @@ class IsolationPlayer:
         return (transformed_y, transformed_x)
 
     def quadrent_check(self, cartesian_coordinate):
+        #TODO add doc
         x = cartesian_coordinate[0]
         y = cartesian_coordinate[1]
         if x == 0 and y == 0:
@@ -256,14 +249,27 @@ class IsolationPlayer:
         -------
         bool
             return whether there are legal move left for the current active
-        player
+            player
         """
         if not game.get_legal_moves(game.active_player):
             return True
         return False
 
     def legal_moves_and_random_move(self, game):
-        #TODO write doc
+        """Get a list of legal moves and a random choice from the list
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        Returns
+        -------
+        (List, (int, int))
+            return the list of legal moves and one of its content randomly
+        chosen. If there is nothing in the list, it will return (-1, -1)
+        """
         legal_moves = game.get_legal_moves(game.active_player)
         move = (-1 , -1)
         if len(legal_moves) > 0:
@@ -587,6 +593,8 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         for legal_move in legal_moves:
             forecasted_game = game.forecast_move(legal_move)
+            if self.debug == True:
+                self.checked_nodes.append(forecasted_game)
             (returned_move, new_value) = self.max_value(forecasted_game, depth - 1, alpha, beta)
             if v > new_value:
                 v = new_value
@@ -634,6 +642,8 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         for legal_move in legal_moves:
             forecasted_game = game.forecast_move(legal_move)
+            if self.debug == True:
+                self.checked_nodes.append(forecasted_game)
             (returned_move, new_value) = self.min_value(forecasted_game, depth - 1, alpha, beta)
             if v < new_value:
                 v = new_value
