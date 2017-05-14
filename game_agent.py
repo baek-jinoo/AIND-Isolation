@@ -168,14 +168,80 @@ class IsolationPlayer:
         self.TIMER_THRESHOLD = timeout
 
     def reorientate_coordinate(self, coordinate, game_width, game_height):
-        vector = numpy.transpose(numpy.matrix(coordinate))
-        print(vector)
-        print("b")
-        bla = numpy.matrix([[0., 1.], [-1., 0.]])
-        print(bla)
-        print("c")
-        print(bla * vector)
-        return (0, 0)
+        # only do this for symmetric board
+        if game_height != game_width:
+            return coordinate
+
+        # reverse order because input is (y, x) and we work in (x, y)
+        coordinate = coordinate[::-1]
+
+        x_in = coordinate[0]
+        flipped_y_in = coordinate[1]
+        # flip y because we want to work in euclidean coordinates
+        y_in = (game_height - 1) - flipped_y_in
+        
+        # transform to make the coordinates be symmetrical
+        euclidean_x = 2 * x_in - (game_width - 1)
+        euclidean_y = 2 * y_in - (game_height - 1)
+        euclidean_coordinate = (euclidean_x, euclidean_y)
+
+        # do quartile check
+        transformation = numpy.matrix([[1., 0.], [0., 1.]])
+        quadrent = self.quadrent_check(euclidean_coordinate)
+        if quadrent == 1:
+            transformation = numpy.matrix([[0., -1.], [1., 0.]])
+        if quadrent == 3:
+            transformation = numpy.matrix([[0., 1.], [-1., 0.]])
+        if quadrent == 4:
+            transformation = numpy.matrix([[-1., 0.], [0., -1.]])
+
+
+        # make numpy vector from tuple
+        coordinate_vector = numpy.transpose(numpy.matrix(euclidean_coordinate))
+
+
+        # linear transformation
+        transformed_matrix = numpy.transpose(transformation * coordinate_vector)
+        transformed_array = numpy.squeeze(numpy.asarray(transformed_matrix))
+
+        transformed_euclidean_x = transformed_array[0]
+        transformed_euclidean_y = transformed_array[1]
+
+        # undo the board transform to undo the symmetry
+        transformed_x = int((transformed_euclidean_x + game_width - 1) * 0.5)
+        flipped_transformed_y = int((transformed_euclidean_y + game_height - 1) * 0.5)
+        # unflip the y coordinate
+        transformed_y = (game_height - 1) - flipped_transformed_y
+
+        # return as (y, x)
+        return (transformed_y, transformed_x)
+
+    def quadrent_check(self, cartesian_coordinate):
+        x = cartesian_coordinate[0]
+        y = cartesian_coordinate[1]
+        if x == 0 and y == 0:
+            return 2
+
+        if x == 0 or y == 0:
+            if y > 0:
+                return 2
+            if y < 0:
+                return 4
+            if x > 0:
+                return 1
+            if x < 0:
+                return 3
+
+        if x > 0:
+            if y > 0:
+                return 1
+            else:
+                return 4
+        else:
+            if y > 0:
+                return 2
+            else:
+                return 3
 
     def terminal_test(self, game):
         """Check if the game has ended

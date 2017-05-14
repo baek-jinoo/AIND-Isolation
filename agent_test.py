@@ -42,6 +42,38 @@ class IsolationMinimaxTest(unittest.TestCase):
         #print(game_agent.custom_score(self.game, self.player1))
         pass
 
+class IsolationQuartileCheck(unittest.TestCase):
+    def setUp(self):
+        reload(game_agent)
+        self.player1 = game_agent.AlphaBetaPlayer(3)
+
+    def test_quadrent_1(self):
+        self.assertEqual(1, self.player1.quadrent_check((1, 1)))
+
+    def test_quadrent_2(self):
+        self.assertEqual(2, self.player1.quadrent_check((-1, 1)))
+
+    def test_quadrent_3(self):
+        self.assertEqual(3, self.player1.quadrent_check((-1, -1)))
+
+    def test_quadrent_4(self):
+        self.assertEqual(4, self.player1.quadrent_check((1, -1)))
+
+    def test_quadrent_2_origin(self):
+        self.assertEqual(2, self.player1.quadrent_check((0, 0)))
+
+    def test_quadrent_2_x_0_y_positive(self):
+        self.assertEqual(2, self.player1.quadrent_check((0, 1)))
+
+    def test_quadrent_1_x_positive_y_0(self):
+        self.assertEqual(1, self.player1.quadrent_check((1, 0)))
+
+    def test_quadrent_4_x_0_y_negative(self):
+        self.assertEqual(4, self.player1.quadrent_check((0, -1)))
+
+    def test_quadrent_3_x_negative_y_0(self):
+        self.assertEqual(3, self.player1.quadrent_check((-1, 0)))
+
 class IsolationFirstTwoMovesRotationTest(unittest.TestCase):
     """
     Unit tests for first two moves rotation to reduce search space
@@ -51,55 +83,111 @@ class IsolationFirstTwoMovesRotationTest(unittest.TestCase):
         reload(game_agent)
         self.player1 = game_agent.AlphaBetaPlayer(3)
         self.player2 = game_agent.AlphaBetaPlayer(3)
-        self.game = isolation.Board(self.player1, self.player2, 7, 7)
+
+    def test_first_two_move_reorientation_in_q1_even_height_width_in_Q4_middle(self):
+        game_width = 4
+        game_height = 4
+        # make one move in Q1
+        reoriented_coorindate = self.player1.reorientate_coordinate((2, 2),
+                                                                    game_width,
+                                                                    game_height)
+
+        #check that method gives back coordinate in Q2
+        self.assertEqual((1, 1), reoriented_coorindate)
+
+    def test_first_two_move_reorientation_in_q1_even_height_width_in_Q3(self):
+        game_width = 4
+        game_height = 4
+        # make one move in Q1
+        reoriented_coorindate = self.player1.reorientate_coordinate((3, 1),
+                                                                    game_width,
+                                                                    game_height)
+
+        #check that method gives back coordinate in Q2
+        self.assertEqual((1, 0), reoriented_coorindate)
 
     def test_first_two_move_reorientation_in_q1(self):
-        # make one move in Q1
         game_width = 3
         game_height = 3
-        self.game = isolation.Board(self.player1, self.player2, game_width,
-                                    game_height)
+        # make one move in Q1
         reoriented_coorindate = self.player1.reorientate_coordinate((0, 2),
                                                                     game_width,
                                                                     game_height)
 
+        #check that method gives back coordinate in Q2
         self.assertEqual((0, 0), reoriented_coorindate)
 
     def test_first_two_move_reorientation_in_q2(self):
+        game_width = 3
+        game_height = 3
         # make one move in Q2
-        game_width = 7
-        game_height = 7
-        self.game = isolation.Board(self.player1, self.player2, game_width,
-                                    game_height)
-        reoriented_coorindate = self.player1.reorientate_coordinate((6, 1),
+        reoriented_coorindate = self.player1.reorientate_coordinate((0, 0),
                                                                     game_width,
                                                                     game_height)
-        #check that method gives back coordinate in Q1
-        #self.assertEqual((0, 1), reoriented_coorindate)
+        #check that method gives back coordinate in Q2
+        self.assertEqual((0, 0), reoriented_coorindate)
 
     def test_first_two_move_reorientation_in_q3(self):
+        game_width = 3
+        game_height = 3
         # make one move in Q3
-        game_width = 7
-        game_height = 7
-        self.game = isolation.Board(self.player1, self.player2, game_width,
-                                    game_height)
-        reoriented_coorindate = self.player1.reorientate_coordinate((6, 1),
+        reoriented_coorindate = self.player1.reorientate_coordinate((2, 0),
                                                                     game_width,
                                                                     game_height)
-        #check that method gives back coordinate in Q1
+        #check that method gives back coordinate in Q2
+        self.assertEqual((0, 0), reoriented_coorindate)
 
     def test_first_two_move_reorientation_in_q4(self):
+        game_width = 3
+        game_height = 3
         # make one move in Q4
-        game_width = 7
-        game_height = 7
-        self.game = isolation.Board(self.player1, self.player2, game_width,
-                                    game_height)
-        reoriented_coorindate = self.player1.reorientate_coordinate((6, 1),
+        reoriented_coorindate = self.player1.reorientate_coordinate((2, 2),
                                                                     game_width,
                                                                     game_height)
-        #check that method gives back coordinate in Q1
+        #check that method gives back coordinate in Q2
+        self.assertEqual((0, 0), reoriented_coorindate)
 
-    def test_first_move_reorientation_in_q4_rectangular_flip(self):
+    def test_first_two_move_reorientation_on_edge_between_Q2_and_Q3(self):
+        game_width = 3
+        game_height = 3
+       # make one move in Q3
+        reoriented_coorindate = self.player1.reorientate_coordinate((1, 0),
+                                                                    game_width,
+                                                                    game_height)
+        #check that method gives back coordinate in Q2
+        self.assertEqual((0, 1), reoriented_coorindate)
+
+    def test_first_two_move_reorientation_on_edge_between_Q2_and_Q1(self):
+        game_width = 3
+        game_height = 3
+        # make one move in Q2
+        reoriented_coorindate = self.player1.reorientate_coordinate((0, 1),
+                                                                    game_width,
+                                                                    game_height)
+        #check that method gives back coordinate in Q2
+        self.assertEqual((0, 1), reoriented_coorindate)
+
+    def test_first_two_move_reorientation_in_origin(self):
+        game_width = 3
+        game_height = 3
+        # make one move in Q2
+        reoriented_coorindate = self.player1.reorientate_coordinate((1, 1),
+                                                                    game_width,
+                                                                    game_height)
+        #check that method gives back coordinate in origin
+        self.assertEqual((1, 1), reoriented_coorindate)
+
+    def test_first_two_move_reorientation_on_edge_between_Q3_and_Q4(self):
+        game_width = 3
+        game_height = 3
+        # make one move in Q2
+        reoriented_coorindate = self.player1.reorientate_coordinate((2, 1),
+                                                                    game_width,
+                                                                    game_height)
+        #check that method gives back coordinate in Q2
+        self.assertEqual((0, 1), reoriented_coorindate)
+
+    def test_first_move_reorientation_in_assymetric_board(self):
         game_width = 2
         game_height = 3
         self.game = isolation.Board(self.player1, self.player2, game_width,
@@ -107,16 +195,8 @@ class IsolationFirstTwoMovesRotationTest(unittest.TestCase):
         reoriented_coorindate = self.player1.reorientate_coordinate((2, 1),
                                                                     game_width,
                                                                     game_height)
-
-    def test_first_move_reorientation_in_q4_rectangular_no_flip(self):
-        game_width = 2
-        game_height = 3
-        self.game = isolation.Board(self.player1, self.player2, game_width,
-                                    game_height)
-        reoriented_coorindate = self.player1.reorientate_coordinate((2, 1),
-                                                                    game_width,
-                                                                    game_height)
-
+        #check that method gives back the same coordinates
+        self.assertEqual((2, 1), reoriented_coorindate)
 
 class IsolationAlphaBetaTest(unittest.TestCase):
     """Unit tests for alpha beta isolation agents"""
@@ -134,10 +214,11 @@ class IsolationAlphaBetaTest(unittest.TestCase):
 
     @unittest.skip
     def test_forefeit(self):
-        moves = [[0, 4], [2, 6], [2, 3], [4, 5], [1, 5], [5, 3], [3, 4], [6, 5],
-                 [5, 5], [4, 4], [4, 3], [2, 5], [6, 4], [3, 3], [5, 6], [5, 2],
-                 [3, 5], [3, 1], [1, 4], [1, 2], [0, 2], [2, 4], [1, 0], [0, 3],
-                 [2, 2]]
+        moves = [[0, 4]]
+        #moves = [[0, 4], [2, 6], [2, 3], [4, 5], [1, 5], [5, 3], [3, 4], [6, 5],
+        #         [5, 5], [4, 4], [4, 3], [2, 5], [6, 4], [3, 3], [5, 6], [5, 2],
+        #         [3, 5], [3, 1], [1, 4], [1, 2], [0, 2], [2, 4], [1, 0], [0, 3],
+        #         [2, 2]]
         for move in moves:
             self.game.apply_move(move)
 
