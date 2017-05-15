@@ -43,27 +43,33 @@ def custom_score(game, player):
     my_next_legal_moves = game.get_legal_moves(player)
     their_next_legal_moves = game.get_legal_moves(game.get_opponent(player))
 
-    score = float(len(my_next_legal_moves) - len(their_next_legal_moves))
-
-    intersection = set(my_next_legal_moves).intersection(set(their_next_legal_moves))
-
-    intersection_score = 0.
-    intersection_score_multiplier = 0.8
-    if game.active_player == player:
-        intersection_score = float(len(intersection)) * intersection_score_multiplier
-    else:
-        intersection_score = -1. * float((len(intersection))) * intersection_score_multiplier
+    open_move_difference_score = float(len(my_next_legal_moves) - len(their_next_legal_moves))
 
     w, h = game.width / 2., game.height / 2.
     y, x = game.get_player_location(player)
-    center_score = float((h - y)**2 + (w - x)**2)
+
+    center_score_max = float(w**2 + h**2)
+
+    my_center_score = float((h - y)**2 + (w - x)**2) / center_score_max
+    #my_center_score = (center_score_max - float((h - y)**2 + (w - x)**2)) / center_score_max
+    #print("my_center_score {}".format(my_center_score))
 
     opponent_player = game.get_opponent(player)
     opponent_location = game.get_player_location(opponent_player)
     opponent_center_score = 0.
     if opponent_location != None:
-        opponent_center_score = float((h - opponent_location[0])**2 + (w - opponent_location[1])**2)
-    return score + center_score - opponent_center_score #+ intersection_score
+        opponent_center_score = float((h - opponent_location[0])**2 + (w - opponent_location[1])**2) / center_score_max
+        #opponent_center_score = (center_score_max - float((h - opponent_location[0])**2 + (w - opponent_location[1])**2)) / center_score_max
+    center_score_difference = my_center_score - opponent_center_score
+    #center_score_difference_with_multiplier = 0.1 * center_score_difference
+
+    blank_spaces = float(len(game.get_blank_spaces()))
+    total_spaces = float(game.width * game.height)
+    blank_space_ratio = blank_spaces / total_spaces
+    #print("blank space {}, total space {}, blank space ratio {}".format(blank_spaces, total_spaces, blank_space_ratio))
+
+    return open_move_difference_score + center_score_difference
+    #return open_move_difference_score + (1. - blank_space_ratio) * center_score_difference_with_multiplier
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
