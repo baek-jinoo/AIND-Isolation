@@ -236,6 +236,49 @@ class IsolationPlayer:
             else:
                 return 3
 
+    def deduplicated_symmetrical_legal_moves(self, game, legal_moves):
+        """If the current active player has not moved yet, we will remove the
+        symmetrical moves to reduce the branching factor.
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+        legal_moves : List
+            List of legal moves for the current active player
+
+        Returns
+        -------
+        List
+            Return the list of legal moves. This is a shorter list when compared
+            to the input if the board is a square and there are symmetrical
+            moves for the user
+        """
+        active_player_location = game.get_player_location(game.active_player)
+
+        if active_player_location != None:
+            return legal_moves
+
+        opponent_player = game.get_opponent(game.active_player)
+        opponent_player_location = game.get_player_location(opponent_player)
+        if opponent_player_location != None:
+            center_move_exists = game.width % 2 == 1 and game.height % 2 == 1 and game.width == game.height
+            if not center_move_exists:
+                return legal_moves
+
+            center_move = (int(game.height / 2), int(game.width / 2))
+            if center_move != opponent_player_location:
+                return legal_moves
+
+        legal_moves_set = set()
+        for legal_move in legal_moves:
+            reoriented_coordinate = self.reorientate_coordinate(legal_move,
+                                                                game.width,
+                                                                game.height)
+            legal_moves_set.add(reoriented_coordinate)
+        return list(legal_moves_set)
+
     def terminal_test(self, game):
         """Check if the game has ended
 
@@ -374,10 +417,14 @@ class MinimaxPlayer(IsolationPlayer):
         if depth <= 0:
             return next_move
 
-        for legal_move in game.get_legal_moves(self):
+        legal_moves = self.deduplicated_symmetrical_legal_moves(game, legal_moves)
+
+        for legal_move in legal_moves:
             if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout()
             forecasted_game = game.forecast_move(legal_move)
+            if self.debug:
+                self.checked_nodes.append(forecasted_game)
             new_value = self.min_value(forecasted_game, depth - 1)
             if value == None or value < new_value:
                 value = new_value
@@ -408,10 +455,14 @@ class MinimaxPlayer(IsolationPlayer):
         if depth <= 0 or self.terminal_test(game):
             return self.score(game, self)
         v = float("inf")
+        legal_moves = game.get_legal_moves(game.active_player)
+        legal_moves = self.deduplicated_symmetrical_legal_moves(game, legal_moves)
 
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
-         game.get_legal_moves(game.active_player)]
+         legal_moves]
         for forecasted_game in forecasted_games:
+            if self.debug:
+                self.checked_nodes.append(forecasted_game)
             v = min(v, self.max_value(forecasted_game, depth - 1))
         return v
 
@@ -444,6 +495,8 @@ class MinimaxPlayer(IsolationPlayer):
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
          game.get_legal_moves(game.active_player)]
         for forecasted_game in forecasted_games:
+            if self.debug:
+                self.checked_nodes.append(forecasted_game)
             v = max(v, self.min_value(forecasted_game, depth - 1))
         return v
 
@@ -556,7 +609,8 @@ class AlphaBetaPlayer(IsolationPlayer):
         return move
 
     def min_value(self, game, depth, alpha, beta):
-        """Get the max value for next move
+        """Get the min value for next move. For the first two moves, we remove
+        symmetrical moves to reduce the branching factor
 
         Parameters
         ----------
@@ -591,6 +645,8 @@ class AlphaBetaPlayer(IsolationPlayer):
             return (move, self.score(game, self))
         v = float("inf")
 
+        legal_moves = self.deduplicated_symmetrical_legal_moves(game, legal_moves)
+
         for legal_move in legal_moves:
             forecasted_game = game.forecast_move(legal_move)
             if self.debug == True:
@@ -605,7 +661,8 @@ class AlphaBetaPlayer(IsolationPlayer):
         return (move, v)
 
     def max_value(self, game, depth, alpha, beta):
-        """Get the max value for next move
+        """Get the max value for next move. For the first two moves, we remove
+        symmetrical moves to reduce the branching factor
 
         Parameters
         ----------
@@ -639,6 +696,8 @@ class AlphaBetaPlayer(IsolationPlayer):
         if depth <= 0 or self.terminal_test(game):
             return (move, self.score(game, self))
         v = float("-inf")
+
+        legal_moves = self.deduplicated_symmetrical_legal_moves(game, legal_moves)
 
         for legal_move in legal_moves:
             forecasted_game = game.forecast_move(legal_move)

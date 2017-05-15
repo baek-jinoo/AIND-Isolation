@@ -18,9 +18,15 @@ class IsolationMinimaxTest(unittest.TestCase):
 
     def setUp(self):
         reload(game_agent)
-        self.player1 = game_agent.MinimaxPlayer(4)
+        self.player1 = game_agent.MinimaxPlayer(3)
+        self.player1.debug = True
         self.player2 = game_agent.MinimaxPlayer(3)
         self.game = isolation.Board(self.player1, self.player2, 7, 7)
+
+        time_millis = lambda: 1000 * timeit.default_timer()
+        move_start = time_millis()
+        time_left = lambda : 30000 - (time_millis() - move_start)
+        self.player1.time_left = time_left
 
     @unittest.skip
     def test_minmax_get_move(self):
@@ -29,18 +35,33 @@ class IsolationMinimaxTest(unittest.TestCase):
         time_left = lambda : 30000 - (time_millis() - move_start)
         self.player1.get_move(self.game, time_left)
 
-    @unittest.skip
-    def test_minimax(self):
-        print("start minimax test")
-        (winner, history, reason) = self.game.play()
-        print(winner.name)
-        self.assertEqual(self.player2, winner)
-        self.assertEqual(self.player1, winner)
+    def test_minimax_depth_1(self):
+        expected_checked_nodes = []
+        expected_checked_nodes.append(self.game.forecast_move((0, 0)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((0, 1)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((0, 2)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((0, 3)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((1, 0)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((1, 1)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((1, 2)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((1, 3)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((2, 0)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((2, 1)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((2, 2)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((2, 3)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((3, 3)).hash())
 
-    @unittest.skip
-    def test_custom_score(self):
-        #print(game_agent.custom_score(self.game, self.player1))
-        pass
+        next_move = self.player1.minimax(self.game, 1)
+
+        hashes_of_checked_nodes = [checked_node.hash() for checked_node in self.player1.checked_nodes]
+
+        self.assertEqual(len(expected_checked_nodes), len(self.player1.checked_nodes))
+        self.assertEqual(set(expected_checked_nodes), set(hashes_of_checked_nodes))
+
+    def test_second_move_symmetrical_optimization(self):
+        next_move = self.player1.minimax(self.game, 2)
+        total_expected_checked_nodes = 12 * 48 + 12 + 13
+        self.assertTrue(total_expected_checked_nodes >= len(self.player1.checked_nodes))
 
 class IsolationQuartileCheck(unittest.TestCase):
     def setUp(self):
@@ -207,7 +228,7 @@ class IsolationAlphaBetaTest(unittest.TestCase):
         self.player1.debug = True
         self.player2 = game_agent.AlphaBetaPlayer(3)
         self.player2.debug = True
-        self.game = isolation.Board(self.player1, self.player2, 3, 3)
+        self.game = isolation.Board(self.player1, self.player2, 7, 7)
 
         time_millis = lambda: 1000 * timeit.default_timer()
         move_start = time_millis()
@@ -235,7 +256,17 @@ class IsolationAlphaBetaTest(unittest.TestCase):
         expected_checked_nodes = []
         expected_checked_nodes.append(self.game.forecast_move((0, 0)).hash())
         expected_checked_nodes.append(self.game.forecast_move((0, 1)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((0, 2)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((0, 3)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((1, 0)).hash())
         expected_checked_nodes.append(self.game.forecast_move((1, 1)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((1, 2)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((1, 3)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((2, 0)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((2, 1)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((2, 2)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((2, 3)).hash())
+        expected_checked_nodes.append(self.game.forecast_move((3, 3)).hash())
 
         next_move = self.player1.alphabeta(self.game, 1)
 
@@ -246,12 +277,8 @@ class IsolationAlphaBetaTest(unittest.TestCase):
 
     def test_alpha_beta_pruning_with_alpha(self):
         next_move = self.player1.alphabeta(self.game, 2)
-        self.assertTrue(36 > len(self.player1.checked_nodes))
-
-    @unittest.skip
-    def test_alpha_beta_pruning_with_beta(self):
-        next_move = self.player1.alphabeta(self.game, 3)
-        #self.assertTrue(36 ,len(self.player1.checked_nodes))
+        total_expected_checked_nodes = 12 * 48 + 12 + 13
+        self.assertTrue(total_expected_checked_nodes > len(self.player1.checked_nodes))
 
 if __name__ == '__main__':
     unittest.main()
