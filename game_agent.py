@@ -10,6 +10,22 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
+def half_width_and_height(game):
+    #TODO doc
+    return game.width / 2., game.height / 2.
+
+def center_score(game, player):
+    #TODO doc
+    w, h = half_width_and_height(game)
+    location = game.get_player_location(player)
+    if location != None:
+        return float((h - location[0])**2 + (w - location[1])**2)
+    return 0.
+
+def center_score_max(game):
+    #TODO doc
+    w, h = half_width_and_height(game)
+    return float(w**2 + h**2)
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -40,36 +56,28 @@ def custom_score(game, player):
     if game_utility_value != 0.:
         return game_utility_value
 
+    # open moves
     my_next_legal_moves = game.get_legal_moves(player)
     their_next_legal_moves = game.get_legal_moves(game.get_opponent(player))
+    open_move_difference = float(len(my_next_legal_moves) - len(their_next_legal_moves))
 
-    open_move_difference_score = float(len(my_next_legal_moves) - len(their_next_legal_moves))
+    # center score
+    current_center_score_max = center_score_max(game)
 
-    w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
-
-    center_score_max = float(w**2 + h**2)
-
-    my_center_score = float((h - y)**2 + (w - x)**2) / center_score_max
-    #my_center_score = (center_score_max - float((h - y)**2 + (w - x)**2)) / center_score_max
-    #print("my_center_score {}".format(my_center_score))
+    my_center_score = center_score(game, player) / current_center_score_max
 
     opponent_player = game.get_opponent(player)
-    opponent_location = game.get_player_location(opponent_player)
-    opponent_center_score = 0.
-    if opponent_location != None:
-        opponent_center_score = float((h - opponent_location[0])**2 + (w - opponent_location[1])**2) / center_score_max
-        #opponent_center_score = (center_score_max - float((h - opponent_location[0])**2 + (w - opponent_location[1])**2)) / center_score_max
-    center_score_difference = my_center_score - opponent_center_score
-    #center_score_difference_with_multiplier = 0.1 * center_score_difference
+    opponent_center_score = center_score(game, opponent_player) / current_center_score_max
 
+    center_score_difference = my_center_score - opponent_center_score
+
+    # blank space ratio (lower ratio later in the game)
     blank_spaces = float(len(game.get_blank_spaces()))
     total_spaces = float(game.width * game.height)
     blank_space_ratio = blank_spaces / total_spaces
-    #print("blank space {}, total space {}, blank space ratio {}".format(blank_spaces, total_spaces, blank_space_ratio))
 
-    return open_move_difference_score + center_score_difference
-    #return open_move_difference_score + (1. - blank_space_ratio) * center_score_difference_with_multiplier
+    return open_move_difference + center_score_difference# * blank_space_ratio
+
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
