@@ -1,0 +1,23 @@
+
+This script evaluates the performance of the custom_score evaluation
+function against a baseline agent using alpha-beta search and iterative
+deepening (ID) called `AB_Improved`. The three `AB_Custom` agents use
+ID and alpha-beta search with the custom_score functions defined in
+game_agent.py.
+
+                        *************************                         
+                             Playing Matches                              
+                        *************************                         
+
+ Match #   Opponent    AB_Improved   AB_Custom   AB_Custom_2  AB_Custom_3 
+                        Won | Lost   Won | Lost   Won | Lost   Won | Lost 
+    1       Random      185 |  15    185 |  15    185 |  15    183 |  17  
+    2       MM_Open     146 |  54    158 |  42    161 |  39    153 |  47  
+    3      MM_Center    174 |  26    188 |  12    175 |  25    177 |  23  
+    4     MM_Improved   135 |  65    149 |  51    138 |  62    152 |  48  
+    5       AB_Open     111 |  89    100 |  100   109 |  91    100 |  100 
+    6      AB_Center    120 |  80    109 |  91    111 |  89    117 |  83  
+    7     AB_Improved   88  |  112   102 |  98    112 |  88    103 |  97  
+--------------------------------------------------------------------------
+           Win Rate:      68.5%        70.8%        70.8%        70.4%    
+
