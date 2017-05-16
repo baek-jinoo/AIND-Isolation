@@ -4,6 +4,7 @@ and include the results in your report.
 """
 import random
 import numpy
+import math
 
 
 class SearchTimeout(Exception):
@@ -19,13 +20,27 @@ def center_score(game, player):
     w, h = half_width_and_height(game)
     location = game.get_player_location(player)
     if location != None:
-        return float((h - location[0])**2 + (w - location[1])**2)
+        return float(abs(h - location[0]) + abs(w - location[1]))
     return 0.
 
 def center_score_max(game):
     #TODO doc
     w, h = half_width_and_height(game)
-    return float(w**2 + h**2)
+    return float(w + h)
+
+def number_of_open_moves(game, player):
+    #TODO doc
+    loc = game.get_player_location(player)
+    if loc == None:
+        return self.get_blank_spaces()
+
+    directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
+                  (1, -2), (1, 2), (2, -1), (2, 1)]
+
+    r, c = loc
+    valid_moves = [(r + dr, c + dc) for dr, dc in directions
+                   if game.move_is_legal((r + dr, c + dc))]
+    return float(len(valid_moves))
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -51,33 +66,23 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-
     game_utility_value = game.utility(player)
     if game_utility_value != 0.:
         return game_utility_value
 
-    # open moves
-    my_next_legal_moves = game.get_legal_moves(player)
-    their_next_legal_moves = game.get_legal_moves(game.get_opponent(player))
-    open_move_difference = float(len(my_next_legal_moves) - len(their_next_legal_moves))
+    my_next_legal_moves = number_of_open_moves(game, player)
+    their_next_legal_moves = number_of_open_moves(game, game.get_opponent(player))
 
-    # center score
+    open_move_difference = float(my_next_legal_moves - their_next_legal_moves)
+
+    r, c = game.get_player_location(player)
+    their_r, their_c = game.get_player_location(game.get_opponent(player))
+    distance_from_opponent = float(abs(r - their_r) + abs(c - their_c)) / float(game.width + game.height)
+
     current_center_score_max = center_score_max(game)
-
     my_center_score = center_score(game, player) / current_center_score_max
 
-    opponent_player = game.get_opponent(player)
-    opponent_center_score = center_score(game, opponent_player) / current_center_score_max
-
-    center_score_difference = my_center_score - opponent_center_score
-
-    # blank space ratio (lower ratio later in the game)
-    blank_spaces = float(len(game.get_blank_spaces()))
-    total_spaces = float(game.width * game.height)
-    blank_space_ratio = blank_spaces / total_spaces
-
-    return open_move_difference + center_score_difference# * blank_space_ratio
-
+    return open_move_difference + distance_from_opponent + my_center_score
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -102,12 +107,20 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
     game_utility_value = game.utility(player)
-    if game_utility_value == 0.:
-        player_legal_moves = game.get_legal_moves(player)
-        opponent_legal_moves = game.get_legal_moves(game.get_opponent(player))
+    if game_utility_value != 0.:
+        return game_utility_value
 
-        score = float(len(player_legal_moves) - len(opponent_legal_moves))
-    return float(game_utility_value)
+    # open moves
+    my_next_legal_moves = number_of_open_moves(game, player)
+    their_next_legal_moves = number_of_open_moves(game, game.get_opponent(player))
+
+    open_move_difference = float(my_next_legal_moves - their_next_legal_moves)
+
+    # center score
+    current_center_score_max = center_score_max(game)
+
+    my_center_score = center_score(game, player) / current_center_score_max
+    return open_move_difference + my_center_score
 
 
 def custom_score_3(game, player):
@@ -133,13 +146,39 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     game_utility_value = game.utility(player)
-    if game_utility_value == 0.:
-        w, h = game.width / 2., game.height / 2.
-        y, x = game.get_player_location(player)
-        return float((h - y)**2 + (w - x)**2)
+    if game_utility_value != 0.:
+        return game_utility_value
 
-    return float(game_utility_value)
+    my_next_legal_moves = number_of_open_moves(game, player)
+    their_next_legal_moves = number_of_open_moves(game, game.get_opponent(player))
 
+    open_move_difference = float(my_next_legal_moves - their_next_legal_moves)
+
+    current_center_score_max = center_score_max(game)
+    my_center_score = center_score(game, player) / current_center_score_max
+
+    r, c = game.get_player_location(player)
+    their_r, their_c = game.get_player_location(game.get_opponent(player))
+    distance_from_opponent = float(abs(r - their_r) + abs(c - their_c)) / float(game.width + game.height)
+
+    #calculate cluster around me
+    blank_spaces = float(len(game.get_blank_spaces()))
+    total_spaces = float(game.width * game.height)
+    if blank_spaces / total_spaces < 0.7:
+        return open_move_difference + distance_from_opponent + my_center_score 
+
+    #3 around
+    surrounding_nodes = []
+    for y in range(-3, 4):
+        for x in range(-3, 4):
+            if y == 0 and x == 0:
+                continue
+            surrounding_nodes.append((y, x))
+
+    taken_nodes = [(r + dr, c + dc) for dr, dc in surrounding_nodes
+                   if not game.move_is_legal((r + dr, c + dc))]
+
+    return open_move_difference + distance_from_opponent + my_center_score + float(len(taken_nodes))
 
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
