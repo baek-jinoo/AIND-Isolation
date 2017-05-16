@@ -12,11 +12,43 @@ class SearchTimeout(Exception):
     pass
 
 def half_width_and_height(game):
-    #TODO doc
+    """
+    return half of the width and height of the game board
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    Returns
+    -------
+    (float, float)
+        (half of game width, half of game height)
+    """
     return game.width / 2., game.height / 2.
 
 def center_score(game, player):
-    #TODO doc
+    """
+    Return center score of the player. The manhattan distance from the center to
+    the player
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        Return the manhattan distance from the center to the player. zero if the
+        player is not on the board
+    """
     w, h = half_width_and_height(game)
     location = game.get_player_location(player)
     if location != None:
@@ -24,12 +56,42 @@ def center_score(game, player):
     return 0.
 
 def center_score_max(game):
-    #TODO doc
+    """
+    Return the maximum manhattan distance
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    Returns
+    -------
+    float
+        Return the maximum manhattan distance from the center
+    """
     w, h = half_width_and_height(game)
     return float(w + h)
 
 def number_of_open_moves(game, player):
-    #TODO doc
+    """
+    Return the number of open moves between the current player 
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        Return the number of open moves between the current player 
+    """
     loc = game.get_player_location(player)
     if loc == None:
         return self.get_blank_spaces()
@@ -70,19 +132,38 @@ def custom_score(game, player):
     if game_utility_value != 0.:
         return game_utility_value
 
+    # open move difference
     my_next_legal_moves = number_of_open_moves(game, player)
     their_next_legal_moves = number_of_open_moves(game, game.get_opponent(player))
 
     open_move_difference = float(my_next_legal_moves - their_next_legal_moves)
 
+    # manhattan distance from center
+    current_center_score_max = center_score_max(game)
+    my_center_score = center_score(game, player) / current_center_score_max
+
+    # manhattan distance from opponent
     r, c = game.get_player_location(player)
     their_r, their_c = game.get_player_location(game.get_opponent(player))
     distance_from_opponent = float(abs(r - their_r) + abs(c - their_c)) / float(game.width + game.height)
 
-    current_center_score_max = center_score_max(game)
-    my_center_score = center_score(game, player) / current_center_score_max
+    #calculate 7x7 cluster around me only when blank spaces are 30% filled up
+    blank_spaces = float(len(game.get_blank_spaces()))
+    total_spaces = float(game.width * game.height)
+    if blank_spaces / total_spaces < 0.7:
+        return open_move_difference + distance_from_opponent + my_center_score 
 
-    return open_move_difference + distance_from_opponent + my_center_score
+    surrounding_nodes = []
+    for y in range(-3, 4):
+        for x in range(-3, 4):
+            if y == 0 and x == 0:
+                continue
+            surrounding_nodes.append((y, x))
+
+    taken_nodes = [(r + dr, c + dc) for dr, dc in surrounding_nodes
+                   if not game.move_is_legal((r + dr, c + dc))]
+
+    return open_move_difference + distance_from_opponent + my_center_score + float(len(taken_nodes))
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -110,17 +191,22 @@ def custom_score_2(game, player):
     if game_utility_value != 0.:
         return game_utility_value
 
-    # open moves
+    # open move difference
     my_next_legal_moves = number_of_open_moves(game, player)
     their_next_legal_moves = number_of_open_moves(game, game.get_opponent(player))
 
     open_move_difference = float(my_next_legal_moves - their_next_legal_moves)
 
-    # center score
-    current_center_score_max = center_score_max(game)
+    # manhattan distance from opponent
+    r, c = game.get_player_location(player)
+    their_r, their_c = game.get_player_location(game.get_opponent(player))
+    distance_from_opponent = float(abs(r - their_r) + abs(c - their_c)) / float(game.width + game.height)
 
+    # manhattan distance from center
+    current_center_score_max = center_score_max(game)
     my_center_score = center_score(game, player) / current_center_score_max
-    return open_move_difference + my_center_score
+
+    return open_move_difference + distance_from_opponent + my_center_score
 
 
 def custom_score_3(game, player):
@@ -149,36 +235,17 @@ def custom_score_3(game, player):
     if game_utility_value != 0.:
         return game_utility_value
 
+    # open move difference
     my_next_legal_moves = number_of_open_moves(game, player)
     their_next_legal_moves = number_of_open_moves(game, game.get_opponent(player))
 
     open_move_difference = float(my_next_legal_moves - their_next_legal_moves)
 
+    # center score
     current_center_score_max = center_score_max(game)
+
     my_center_score = center_score(game, player) / current_center_score_max
-
-    r, c = game.get_player_location(player)
-    their_r, their_c = game.get_player_location(game.get_opponent(player))
-    distance_from_opponent = float(abs(r - their_r) + abs(c - their_c)) / float(game.width + game.height)
-
-    #calculate cluster around me
-    blank_spaces = float(len(game.get_blank_spaces()))
-    total_spaces = float(game.width * game.height)
-    if blank_spaces / total_spaces < 0.7:
-        return open_move_difference + distance_from_opponent + my_center_score 
-
-    #3 around
-    surrounding_nodes = []
-    for y in range(-3, 4):
-        for x in range(-3, 4):
-            if y == 0 and x == 0:
-                continue
-            surrounding_nodes.append((y, x))
-
-    taken_nodes = [(r + dr, c + dc) for dr, dc in surrounding_nodes
-                   if not game.move_is_legal((r + dr, c + dc))]
-
-    return open_move_difference + distance_from_opponent + my_center_score + float(len(taken_nodes))
+    return open_move_difference + my_center_score
 
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
@@ -211,7 +278,25 @@ class IsolationPlayer:
         self.checked_nodes = []
 
     def reorientate_coordinate(self, coordinate, game_width, game_height):
-        #TODO add doc
+        """Return the coordinate (y, x) that would be equivalent closer to the origin
+        if the board was symmetrically rotated. This will only do this if the
+        board is a square. E.g. on a 3 x 3 board, input of (0, 2) and (2, 2) would return
+        (0, 0)
+
+        Parameters
+        ----------
+        coordinate : (int, int)
+            y, x coordinate on the board where (0, 0) is top left and increases
+            to the right and down
+        game_width : int
+            the width of the board
+        game_height : int
+            the height of the board
+        Returns
+        -------
+        int
+            Return the quadrent number in the cartesian coordinate system
+        """
 
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
@@ -265,7 +350,18 @@ class IsolationPlayer:
         return (transformed_y, transformed_x)
 
     def quadrent_check(self, cartesian_coordinate):
-        #TODO add doc
+        """Return the quadrant in a cartesian coordinate system
+
+        Parameters
+        ----------
+        cartesian_coordinate : (int, int)
+            x, y coordinate in the carteisan coordinate system
+
+        Returns
+        -------
+        int
+            Return the quadrent number in the cartesian coordinate system
+        """
         x = cartesian_coordinate[0]
         y = cartesian_coordinate[1]
         if x == 0 and y == 0:
