@@ -174,6 +174,9 @@ class IsolationPlayer:
     def reorientate_coordinate(self, coordinate, game_width, game_height):
         #TODO add doc
 
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
         # only do this for symmetric board
         if game_height != game_width:
             return coordinate
@@ -269,6 +272,9 @@ class IsolationPlayer:
             to the input if the board is a square and there are symmetrical
             moves for the user
         """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
         active_player_location = game.get_player_location(game.active_player)
 
         if active_player_location != None:
@@ -475,6 +481,8 @@ class MinimaxPlayer(IsolationPlayer):
         forecasted_games = [game.forecast_move(legal_move) for legal_move in
          legal_moves]
         for forecasted_game in forecasted_games:
+            if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
             if self.debug:
                 self.checked_nodes.append(forecasted_game)
             v = min(v, self.max_value(forecasted_game, depth - 1))
@@ -662,6 +670,8 @@ class AlphaBetaPlayer(IsolationPlayer):
         legal_moves = self.deduplicated_symmetrical_legal_moves(game, legal_moves)
 
         for legal_move in legal_moves:
+            if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
             forecasted_game = game.forecast_move(legal_move)
             if self.debug == True:
                 self.checked_nodes.append(forecasted_game)
